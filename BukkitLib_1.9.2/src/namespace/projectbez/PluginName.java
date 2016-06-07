@@ -27,7 +27,7 @@ public class PluginName extends JavaPlugin {
 	 */
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		//Return true if the command execution was successful
-		//Return false if the command is not correctly used(will print the defined description from plugin.yml)
+		//Return false if the command is not correctly used(will print the defined usage from plugin.yml)
 		return false;
 	}
 }
