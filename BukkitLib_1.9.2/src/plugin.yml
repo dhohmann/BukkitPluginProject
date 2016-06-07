@@ -1,0 +1,9 @@
+name: DisplayedInConsole
+version: 0.0.0
+author: AUTHOR
+main: namespace.projectbez.Pluginname
+commands:
+  cmdName:
+    description: displayed when help is needed
+    usage: /cmdName <player> [on|off]
+    permission: cmd.perm

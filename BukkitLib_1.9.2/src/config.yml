@@ -1,0 +1,17 @@
+saddle:
+  bla: true
+  blubb: 'Handgefertigter Sattel'
+hillary:
+  clinton: true
+  name: 123456
+information:
+  enabled: true
+  title: Information
+  lines:
+    - 'Real time'
+    - '%realtime%'
+    - '============='
+    - 'World time'
+    - '%worldtime%'
+deleteInventory:
+  enabled: true
