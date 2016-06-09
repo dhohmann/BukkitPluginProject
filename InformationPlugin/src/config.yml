@@ -1,0 +1,9 @@
+information:
+  enabled: true
+  title: Information
+  lines:
+    - 'Real time'
+    - '%realtime%'
+    - '============='
+    - 'World time'
+    - '%worldtime%'

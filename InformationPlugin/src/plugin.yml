@@ -1,0 +1,8 @@
+name: InformationPlugin
+version: 0.0.1
+author: dhohmann
+main: de.dhohmann.bukkit.info.InformationPlugin
+commands:
+  information:
+    description: Use this to toggle information scoreboard
+    usage: /information
