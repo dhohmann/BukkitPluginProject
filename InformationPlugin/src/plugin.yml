@@ -2,7 +2,15 @@ name: InformationPlugin
 version: 0.0.1
 author: dhohmann
 main: de.dhohmann.bukkit.info.InformationPlugin
+prefix: InfoPlugin
+description: This plugin can provide information for all users.
+website: https://github.com/dhohmann/BukkitPluginProject/tree/master/InformationPlugin
 commands:
-  information:
+  info-toggle:
     description: Use this to toggle information scoreboard
-    usage: /information
+    usage: /info-toggle
+    aliases: itoggle
+  info-reload:
+    description: Reload the information plugin
+    usage: /info-reload
+    aliases: ireload

@@ -2,8 +2,9 @@ information:
   enabled: true
   title: Information
   lines:
-    - 'Real time'
-    - '%realtime%'
-    - '============='
-    - 'World time'
-    - '%worldtime%'
+  - 'Server: %server%'
+  - 'Real time: %realtime%'
+  - 'World time: %worldtime%'
+  - 'Player online: %online_players%'
+  - 'Difficulty: %difficulty%'
+  - 'Plugins: %plugin_list%'
