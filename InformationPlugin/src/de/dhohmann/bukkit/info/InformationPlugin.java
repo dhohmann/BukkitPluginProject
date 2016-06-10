@@ -33,6 +33,7 @@ public class InformationPlugin extends JavaPlugin {
 	 * Load the config and safe its content locally
 	 */
 	private void loadConfig() {
+		saveDefaultConfig();
 		getConfig().options().copyDefaults();
 		saveConfig();
 
@@ -50,7 +51,7 @@ public class InformationPlugin extends JavaPlugin {
 	 * Called when reloading plugin or shutting down the server
 	 */
 	public void onDisable() {
-
+		Bukkit.getScheduler().cancelTask(task);
 	}
 
 	private void updateScoreboard() {
