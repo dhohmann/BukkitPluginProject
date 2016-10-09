@@ -36,6 +36,8 @@ public class InformationPlugin extends JavaPlugin {
 			}
 
 		}, 0, 20);
+		
+		getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
 	}
 
 	/**

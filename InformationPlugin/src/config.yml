@@ -1,4 +1,10 @@
 information:
+  start-lines:
+  - '******************************************'
+  - 'Hints for Information Plugin'
+  - '******************************************'
+  - ' >> /info-toggle: hide/show info panel'
+  - '******************************************'
   enabled: true
   title: Information
   lines:
