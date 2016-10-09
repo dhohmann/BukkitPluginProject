@@ -3,6 +3,7 @@ package de.dhohmann.bukkit.message.listener;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
@@ -23,7 +24,7 @@ public class PlayerListener implements Listener {
 		message = colorize(message);
 		e.setJoinMessage(message);
 	}
-	
+
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent e) {
 		String message = plugin.getConfig().getString("messages.playerleave", "%player% has left the server");
@@ -31,7 +32,7 @@ public class PlayerListener implements Listener {
 		message = colorize(message);
 		e.setQuitMessage(message);
 	}
-	
+
 	@EventHandler
 	public void onPlayerKick(PlayerKickEvent e) {
 		String message = plugin.getConfig().getString("messages.playerkick", "%player% has left the server");
@@ -47,15 +48,16 @@ public class PlayerListener implements Listener {
 		message = colorize(message);
 		e.setFormat(message);
 	}
-	
-	/*
-	 * TODO Event Handling
-	 * - Player Death Event
-	 * - 
-	 */
+
+	@EventHandler
+	public void onPlayerDeath(PlayerDeathEvent e){
+		String message = plugin.getConfig().getString("messages.playerdeath", "%player% was killed by %killer%");
+		message = formatMessage(message, e);
+		message = colorize(message);
+		e.setDeathMessage(message);
+	}
 
 	private static String formatMessage(String message, Event e) {
-		System.out.println("[INFO] to format: " + message);
 		if (e instanceof PlayerJoinEvent) {
 			message = message.replace("%player%", ((PlayerJoinEvent) e).getPlayer().getDisplayName());
 		}
@@ -70,13 +72,17 @@ public class PlayerListener implements Listener {
 			message = message.replace("%player%", ((PlayerKickEvent) e).getPlayer().getDisplayName());
 			message = message.replace("%reason%", ((PlayerKickEvent) e).getReason());
 		}
-		System.out.println("[INFO] formatted:" + message);
+		if (e instanceof PlayerDeathEvent){
+			message = message.replace("%player%", ((PlayerDeathEvent) e).getEntity().getDisplayName());
+			message = message.replace("%killer%", (((PlayerDeathEvent) e).getEntity().getKiller()==null)? "<unknown>": ((PlayerDeathEvent) e).getEntity().getKiller().getDisplayName());
+		}
 		return message;
 	}
 
 	public static String colorize(String s) {
-		if (s == null)
-			return null;
+		if (s == null){
+			throw new IllegalArgumentException("Argument must not be empty");
+		}
 		return s.replaceAll("&([0-9a-f])", "\u00A7$1");
 	}
 }
