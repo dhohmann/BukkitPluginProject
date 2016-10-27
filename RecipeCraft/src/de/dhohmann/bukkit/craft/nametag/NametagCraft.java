@@ -1,12 +1,14 @@
 package de.dhohmann.bukkit.craft.nametag;
 
+import java.util.Iterator;
+
 import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.material.Wool;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import de.dhohmann.bukkit.craft.RecipeManager;
 
@@ -14,7 +16,7 @@ public class NametagCraft implements RecipeManager {
 	@Override
 	public void onEnable() {
 		ItemStack nametag = new ItemStack(Material.NAME_TAG);
-		ShapedRecipe _recipe = new ShapedRecipe(nametag);
+		ShapedRecipe _recipe = new NameTagRecipe(nametag);
 		_recipe.shape("AAB", "ACA", "AAA");
 		_recipe.setIngredient('A', Material.STICK);
 		_recipe.setIngredient('B', Material.STRING);
@@ -50,5 +52,17 @@ public class NametagCraft implements RecipeManager {
 		Bukkit.addRecipe(_recipe);
 		_recipe.setIngredient('C', new Wool(DyeColor.YELLOW));
 		Bukkit.addRecipe(_recipe);
+	}
+
+	@Override
+	public void onDisable() {
+	    Iterator<Recipe> iter = Bukkit.recipeIterator();
+	    while(iter.hasNext()){
+		Recipe r = iter.next();
+		if(r instanceof NameTagRecipe){
+		    System.out.println("Nametag recipe");
+		}
+	    }
+	    
 	}
 }
