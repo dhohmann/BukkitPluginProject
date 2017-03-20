@@ -1,7 +1,7 @@
-name: NametagCraft
-version: 0.0.2
+name: RecipeCraft
+version: 0.0.1
 author: dhohmann
-main: de.dhohmann.bukkit.craft.nametag.NametagCraft
-prefix: NametagCraft
-description: This plugin adds a recipe for nametags.
+main: de.dhohmann.bukkit.craft.RecipeCraftPlugin
+prefix: RecipeCraft
+description: This plugin adds different custom recipes.
 website: https://github.com/dhohmann/BukkitPluginProject/tree/master/InformationPlugin
