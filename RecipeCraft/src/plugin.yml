@@ -1,5 +1,5 @@
 name: RecipeCraft
-version: 0.0.1
+version: 0.1.0
 author: dhohmann
 main: de.dhohmann.bukkit.craft.RecipeCraftPlugin
 prefix: RecipeCraft
