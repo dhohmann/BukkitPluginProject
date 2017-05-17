@@ -1,0 +1,14 @@
+name: CraftPlugin
+version: 0.0.1
+author: dhohmann
+main: de.dhohmann.bukkit.craft.CraftPlugin
+prefix: CraftPlugin
+description: This plugin adds different custom recipes.
+depend: [CorePlugin]
+commands:
+  recipes:
+    description: Prints every available custom recipe.
+    usage: /recipes
+  recipe:
+    description: Displays the recipe with the given name.
+    usage: /recipe <name>

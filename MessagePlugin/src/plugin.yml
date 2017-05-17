@@ -1,7 +1,0 @@
-name: MessagePlugin
-version: 0.0.1
-author: dhohmann
-main: de.dhohmann.bukkit.message.MessagePlugin
-prefix: MessagePlugin
-description: This plugin can be used for displaying various messages.
-website: will be added
