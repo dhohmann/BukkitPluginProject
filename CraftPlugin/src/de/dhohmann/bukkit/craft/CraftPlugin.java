@@ -15,6 +15,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 
 import de.dhohmann.bukkit.craft.recipes.Nametag;
 import de.dhohmann.bukkit.craft.recipes.Netherstar;
@@ -115,14 +116,6 @@ public class CraftPlugin extends CustomJavaPlugin {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-
-	// TODO Planned Commands
-	/*
-	 * show all recipes (recipe list) show specific recipe (recipe <name> recipe-admin enable
-	 * <name> recipe-admin disable <name>
-	 */
-
-	System.out.println(label + " - " + Arrays.deepToString(args));
 	if (label.equals("recipes")) {
 	    StringBuilder builder = new StringBuilder("Available Recipes\n");
 	    builder.append("************\n");
@@ -133,9 +126,21 @@ public class CraftPlugin extends CustomJavaPlugin {
 	    }
 	    builder.append("************\n");
 	    sender.sendMessage(builder.toString());
-
 	} else if (label.equals("recipe")) {
-
+	    if (args.length >= 1) {
+		String name = args[0];
+		CustomShapedRecipe recipe = null;
+		for (CustomShapedRecipe r : recipes) {
+		    if(r.getIdentifier().equalsIgnoreCase(name)){
+			recipe = r;
+		    }
+		}
+		if(sender instanceof Player){
+		    ((Player)sender).openInventory(recipe.getRecipe());
+		}
+	    } else {
+		return false;
+	    }
 	}
 
 	return true;
