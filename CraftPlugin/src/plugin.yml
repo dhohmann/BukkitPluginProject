@@ -8,7 +8,11 @@ depend: [CorePlugin]
 commands:
   recipes:
     description: Prints every available custom recipe.
-    usage: /recipes
+    usage: /recipelist
   recipe:
-    description: Displays the recipe with the given name.
-    usage: /recipe <name>
+    description: Displays the recipe with the given name or enables/disables it.
+    usage: /recipe [enable | disable] <name>
+
+permissions:
+  recipe.statechange:
+    description: Provides access to the recipe enable/disable command

@@ -1,6 +1,19 @@
 name: CorePlugin
-version: 0.0.1
+version: 0.2.0
 author: dhohmann
 main: de.dhohmann.bukkit.core.CorePlugin
 prefix: CorePlugin
 description: This plugin provides some base features.
+commands:
+  reloadplugin:
+    description: Entry point for various functionalities.
+    usage: /reloadplugin &lt;name&rt;
+    permission: core.pluginreload
+permissions:
+  core.*:
+    description: Grants access to all commands of CorePlugin
+    children:
+      core.pluginreload: true
+  core.pluginreload:
+    description: Grants access to the reloadplugin command
+    default: false

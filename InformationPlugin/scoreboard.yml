@@ -1,0 +1,5 @@
+# Use this to configure the scoreboard
+title: Information
+lines:
+  - Use this to display various lines
+  - You can use various placeholders

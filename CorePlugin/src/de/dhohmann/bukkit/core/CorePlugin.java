@@ -4,41 +4,47 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 
-import de.dhohmann.bukkit.plugin.CustomJavaPlugin;
-import de.dhohmann.bukkit.util.MessageFormatter;
+/**
+ * Enables various basic features for plugin development
+ * 
+ * @version 2.0
+ * @author dhohmann
+ *
+ */
+public class CorePlugin extends JavaPlugin {
 
-public class CorePlugin extends CustomJavaPlugin {
     @Override
-    public void activate() {
-	Core.getJoinMessenger().registerMessage(this, MessageFormatter.formatColorCode(getConfig().getString("message.welcome", null)));
-    }
-
-    @Override
-    public void deactivate() {
-	Core.getJoinMessenger().removeMessages(this);
+    public void onEnable() {
+        super.onEnable();
+        
     }
     
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-
-	if (label.equals("pluginreload")) {
-	    if (args.length > 1) {
-		Plugin p = Bukkit.getPluginManager().getPlugin(args[1]);
-		if (p instanceof CustomJavaPlugin) {
-		    ((CustomJavaPlugin) p).activate();
-		    ((CustomJavaPlugin) p).deactivate();
-		    return true;
+	if (label.equals("reloadplugin")) {
+	    if (sender.hasPermission("core.reloadplugin")) {
+		if (args.length >= 1) {
+		    Plugin plugin = Bukkit.getPluginManager().getPlugin(args[1]);
+		    if (plugin == null) {
+			sender.sendMessage("Plugin " + args[1] + " does not exist");
+		    } else {
+			Bukkit.getPluginManager().disablePlugin(plugin);
+			Bukkit.getPluginManager().enablePlugin(plugin);
+		    }
+		} else {
+		    sender.sendMessage("Wrong parameter count");
+		    return false;
 		}
+	    } else {
+		sender.sendMessage(this.getCommand(label).getPermissionMessage());
 	    }
-	    return false;
+	}
+	if(label.equalsIgnoreCase("commandlist")){
+	    // Show all available commands on the server
 	}
 	return super.onCommand(sender, command, label, args);
-    }
-
-    @Override
-    public boolean hasConfig() {
-	return false;
     }
 
 }

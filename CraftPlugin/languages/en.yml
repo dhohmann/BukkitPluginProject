@@ -1,0 +1,23 @@
+# Command related messages
+commands:
+  noserver: Command cannot be executed by a server
+  wrongargnumber: Invalid number of arguments
+
+  statechange:
+    success: State change successful
+    failure: Failed to change state
+  
+  listrecipes:
+    intro: Available recipes
+
+# Recipe related messages
+recipes:
+  saddle:
+    name: Saddle
+    description: Allows the player to ride horses
+  netherstar:
+    name: Nether Star
+    description: Rare element
+  nametag:
+    name: Nametag
+    description: Changes names of objects or animals

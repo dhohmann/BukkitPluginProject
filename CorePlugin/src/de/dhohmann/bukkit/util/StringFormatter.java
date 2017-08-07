@@ -1,13 +1,18 @@
 package de.dhohmann.bukkit.util;
 
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-public class MessageFormatter {
+public class StringFormatter {
 
     /**
      * Replaces every placeholder in the message with the given value
@@ -22,7 +27,8 @@ public class MessageFormatter {
 	for (int i = 0; i < parts.length; i++) {
 	    String p = parts[i];
 	    if (p.equalsIgnoreCase(placeholder)) {
-		builder.append(value);
+		if(value != null) builder.append(value);
+		else builder.append("<undefined>");
 	    } else {
 		builder.append(p);
 	    }
@@ -99,7 +105,7 @@ public class MessageFormatter {
      * <p>
      * <b>Supported placeholders:</b>
      * <ul>
-     * <li><code>%entity_name%</code> will be replaced by the name of the entity.
+     * <li><b>%entity_name%</b> will be replaced by the name of the entity.
      * </ul>
      * @param message Message containing the placeholder
      * @param entity Entity object
@@ -117,10 +123,10 @@ public class MessageFormatter {
      * <p>
      * <b>Supported placeholders:</b>
      * <ul>
-     * <li><code>%entity_name%</code> will be replaced by the name of the entity.
-     * <li><code>%entity_location%</code> will be replaced by the location of the entity.
-     * <li><code>%entity_health%</code> will be replaced by the health of the entity.
-     * <li><code>%entity_killer%</code> will be replaced by the name of the killer of the entity.
+     * <li><b>%entity_name%</b> will be replaced by the name of the entity.
+     * <li><b>%entity_location%</b> will be replaced by the location of the entity.
+     * <li><b>%entity_health%</b> will be replaced by the health of the entity.
+     * <li><b>%entity_killer%</b> will be replaced by the name of the killer of the entity.
      * </ul>
      * @param message Message containing the placeholder
      * @param entity LivingEntity object
@@ -140,7 +146,7 @@ public class MessageFormatter {
      * <p>
      * <b>Supported placeholders:</b>
      * <ul>
-     * <li><code>%plugin_name%</code> will be replaced by the name of the plugin.
+     * <li><b>%plugin_name%</b> will be replaced by the name of the plugin.
      * </ul>
      * @param message Message containing the placeholder
      * @param plugin Plugin object
@@ -157,11 +163,12 @@ public class MessageFormatter {
      * <p>
      * <b>Supported placeholders:</b>
      * <ul>
-     * <li><code>%server_name%</code> will be replaced by the name of the server.
-     * <li><code>%server_ip%</code> will be replaced by the server ip.
-     * <li><code>%server_motd%</code> will be replaced by the motd of the server.
-     * <li><code>%world_type%</code> will be replaced by the world type.
-     * <li><code>%server_version%</code> will be replaced by the server implementation version.
+     * <li><b>%server_name%</b> will be replaced by the name of the server.
+     * <li><b>%server_ip%</b> will be replaced by the server ip.
+     * <li><b>%server_motd%</b> will be replaced by the motd of the server.
+     * <li><b>%world_type%</b> will be replaced by the world type.
+     * <li><b>%server_version%</b> will be replaced by the server implementation version.
+     * <li><b>%online_players%</b> will be replaced by the currently online players.
      * </ul>
      * @param message Message containing the placeholder
      * @param server Server object
@@ -175,6 +182,7 @@ public class MessageFormatter {
 	result = replacePlaceholder(message, "%world_type%", server.getWorldType());
 	result = replacePlaceholder(message, "%server_version%", server.getVersion());
 	result = replacePlaceholder(message, "%flight_allowed%", Boolean.toString(server.getAllowFlight()));
+	result = replacePlaceholder(message, "%online_players%", Integer.toString(server.getOnlinePlayers().size()));
 	return result;
     }
 
@@ -183,13 +191,13 @@ public class MessageFormatter {
      * <p>
      * <b>Supported placeholders:</b>
      * <ul>
-     * <li><code>%world_name%</code> will be replaced by the name of the world.
-     * <li><code>%world_time%</code> will be replaced by the time of the world in 24h format.
-     * <li><code>%world_time_raw%</code> will be replaced by the time of the world.
-     * <li><code>%world_difficulty%</code> will be replaced by the difficulty of the world.
-     * <li><code>%world_height%</code> will be replaced by the maximum height of the world.
-     * <li><code>%world_seed%</code> will be replaced by the world seed.
-     * <li><code>%world_height%</code> will be replaced by the current number of players.
+     * <li><b>%world_name%</b> will be replaced by the name of the world.
+     * <li><b>%world_time%</b> will be replaced by the time of the world in 24h format.
+     * <li><b>%world_time_raw%</b> will be replaced by the time of the world.
+     * <li><b>%world_difficulty%</b> will be replaced by the difficulty of the world.
+     * <li><b>%world_height%</b> will be replaced by the maximum height of the world.
+     * <li><b>%world_seed%</b> will be replaced by the world seed.
+     * <li><b>%world_height%</b> will be replaced by the current number of players.
      * </ul>
      * @param message Message containing the placeholder
      * @param world World object
@@ -206,6 +214,70 @@ public class MessageFormatter {
 	result = replacePlaceholder(message, "world_height", Integer.toString(world.getMaxHeight()));
 	result = replacePlaceholder(message, "world_seed", Long.toString(world.getSeed()));
 	result = replacePlaceholder(message, "world_players", Integer.toString(world.getPlayers().size()));
+	return result;
+    }
+    /**
+     * 
+     * Formats the given message with the player properties
+     * <p>
+     * <b>Supported placeholders:</b>
+     * <ul>
+     * <li><b>%player_name%</b> will be replaced by the name of the player.
+     * <li><b>%player_allow_fly%</b> will be replaced by <code>true</code>, if the player is allowed to fly.
+     * <li><b>%player_bed%</b> will be replaced by the bed position, if the player got a bed
+     * <li><b>%player_exhaustion%</b> will be replaced by the player' exhaustion.
+     * <li><b>%player_food_level%</b> will be replaced by the player's food level.
+     * <li><b>%player_gamemode%</b> will be replaced by the player's gamemode.
+     * <li><b>%player_health%</b> will be replaced by the player's health.
+     * <li><b>%player_killer%</b> will be replaced by the player's killer.
+     * <li><b>%player_level%</b> will be replaced by the player's level.
+     * <li><b>%player_damage_cause%</b> will be replaced by the player's last damage cause.
+     * <li><b>%player_location%</b> will be replaced by the player's location.
+     * <li><b>%player_first_played%</b> will be replaced by the player's first time played.
+     * <li><b>%player_saturation%</b> will be replaced by the player's saturation.
+     * <li><b>%player_age%</b> will be replaced by the player's age.
+     * </ul>
+     * @param message Message containing the placeholder
+     * @param player Player object
+     * @return Formatted message
+     */
+    public static String formatPlaceholder(String message, Player player){
+	String result = message;
+	result = replacePlaceholder(message, "%player_name%", player.getName());
+	result = replacePlaceholder(message, "%player_allow_fly%", Boolean.toString(player.getAllowFlight()));
+	result = replacePlaceholder(message, "%player_bed%", player.getBedSpawnLocation().toString());
+	result = replacePlaceholder(message, "%player_exhaustion%", Float.toString(player.getExhaustion()));
+	result = replacePlaceholder(message, "%player_exp%", Float.toString(player.getExp()));
+	result = replacePlaceholder(message, "%player_food_level%", Integer.toString(player.getFoodLevel()));
+	result = replacePlaceholder(message, "%player_gamemode%", player.getGameMode().toString());
+	result = replacePlaceholder(message, "%player_health%", Double.toString(player.getHealth()));
+	result = replacePlaceholder(message, "%player_killer%", player.getKiller().getName());
+	result = replacePlaceholder(message, "%player_level%", Integer.toString(player.getLevel()));
+	result = replacePlaceholder(message, "%player_damage_cause%", player.getLastDamageCause().getCause().toString());
+	result = replacePlaceholder(message, "%player_location%", player.getLocation().toString());
+	result = replacePlaceholder(message, "%player_first_played%", new SimpleDateFormat("hh:mm").format(new Date(player.getFirstPlayed())));
+	result = replacePlaceholder(message, "%player_saturation%", Float.toString(player.getSaturation()));
+	result = replacePlaceholder(message, "%player_age%", Integer.toString(player.getTicksLived()));
+	
+	return result;
+    }
+    
+    /**
+     * Formats the given message with some values
+     * <p>
+     * <b>Supported placeholders:</b>
+     * <ul>
+     * <li><b>%real_time%</b> will be replaced by the real time.
+     * <li><b>%github%</b> will be replaced by the link to the repository.
+     * </ul>
+     * @param message
+     * @return
+     */
+    public static String formatPlaceholder(String message){
+	String result = message;
+	result = replacePlaceholder(message, "%real_time%", new SimpleDateFormat("hh:mm").format(new Date()));
+	result = replacePlaceholder(message, "%github%", "https://github.com/dhohmann/BukkitPluginProject");
+	
 	return result;
     }
 }

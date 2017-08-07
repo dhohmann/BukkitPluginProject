@@ -3,48 +3,41 @@ package de.dhohmann.bukkit.craft.recipes;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
-import java.util.Properties;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
-import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import de.dhohmann.bukkit.craft.CraftPlugin;
-import de.dhohmann.bukkit.inventory.CustomShapedRecipe;
-import de.dhohmann.bukkit.util.LanguageSelector;
+import de.dhohmann.bukkit.core.Toggleable;
+import de.dhohmann.bukkit.craft.CraftRecipe;
 
-public class Netherstar extends CustomShapedRecipe {
+public class Netherstar extends CraftRecipe implements Toggleable {
     
-    private CraftPlugin plugin;
-    private LanguageSelector languages;
+    private FileConfiguration language;
+    private boolean enabled = false;
     
-    public Netherstar() {
+    public Netherstar(FileConfiguration lang) {
 	super(new ItemStack(Material.NETHER_STAR, 1));
-	plugin = (CraftPlugin) Bukkit.getPluginManager().getPlugin("CraftPlugin");
-	languages = plugin.getLanguages();
+	language = lang;
     }
     
-    @Override
-    public String getIdentifier() {
-	return "NetherStar";
-    }
 
     @Override
-    public void activate() {	
-	Properties config = languages.getLanguage(Locale.getDefault());
+    public void enable() {
+	if(enabled) return;
+	enabled = true;
 	
-	ItemMeta meta = this.getResult().getItemMeta();
-	meta.setDisplayName(config.getProperty("titleNetherstar", "Netherstar"));
+	ItemMeta meta = getProtectedResult().getItemMeta();
+	meta.setDisplayName(language.getString("recipes.netherstar.name", "Netherstar"));
 	List<String> lore = new ArrayList<>();
-	lore.add(config.getProperty("descrNetherstar", ""));
+	lore.add(language.getString("recipes.netherstar.description", ""));
 	meta.setLore(lore);
-	this.getResult().setItemMeta(meta);
+	getProtectedResult().setItemMeta(meta);
 	
-	ShapedRecipe recipe = this;
+	CraftRecipe recipe = this;
 	recipe.shape("ABA", "BCB", "ABA");
 	recipe.setIngredient('A', Material.AIR);
 	recipe.setIngredient('B', Material.EMERALD);
@@ -53,16 +46,21 @@ public class Netherstar extends CustomShapedRecipe {
     }
 
     @Override
-    public void deactivate() {
-	Iterator<Recipe> iter = Bukkit.recipeIterator();
-	while (iter.hasNext()) {
-	    Recipe r = iter.next();
-	    if (r instanceof CustomShapedRecipe) {
-		if(((CustomShapedRecipe)r).getIdentifier().equals(this.getIdentifier())){
-		    iter.remove();
-		}
+    public void disable() {
+	if(!enabled) return;
+	enabled = false;
+	
+	Iterator<Recipe> iter = Bukkit.getRecipesFor(getProtectedResult()).iterator();
+	while(iter.hasNext()){
+	    if(iter.next() instanceof Nametag){
+		iter.remove();
 	    }
 	}
+    }
+
+    @Override
+    public boolean isEnabled() {
+	return enabled;
     }
 
 }

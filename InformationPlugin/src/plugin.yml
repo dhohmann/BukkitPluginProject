@@ -6,11 +6,6 @@ prefix: InfoPlugin
 description: This plugin can provide information for all users.
 website: https://github.com/dhohmann/BukkitPluginProject/tree/master/InformationPlugin
 commands:
-  info-toggle:
-    description: Use this to toggle information scoreboard
-    usage: /info-toggle
-    aliases: itoggle
-  info-reload:
-    description: Reload the information plugin
-    usage: /info-reload
-    aliases: ireload
+  infoplugin:
+    description: Enables access to the scoreboard
+    usage: /infoplugin <show | hide>

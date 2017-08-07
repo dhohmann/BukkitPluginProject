@@ -1,0 +1,6 @@
+# Startup related messages
+onstartup:
+  availablecommands: Available commands
+  lines:
+    - This is a startup line
+    - Make sure to use a list

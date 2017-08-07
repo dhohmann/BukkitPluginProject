@@ -1,16 +1,8 @@
-information:
-  start-lines:
-  - '******************************************'
-  - 'Hints for Information Plugin'
-  - '******************************************'
-  - ' >> /info-toggle: hide/show info panel'
-  - '******************************************'
+# Triggers various functions on startup
+onstartup:
+  showcommands: true
+  showlines: true
+  
+scoreboard:
   enabled: true
-  title: Information
-  lines:
-  - 'Server: %server%'
-  - 'Real time: %realtime%'
-  - 'World time: %worldtime%'
-  - 'Player online: %online_players%'
-  - 'Difficulty: %difficulty%'
-  - 'Plugins: %plugin_list%'
+  updatetime: 1

@@ -3,50 +3,48 @@ package de.dhohmann.bukkit.craft.recipes;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
-import java.util.Properties;
 
 import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
-import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.Wool;
 
-import de.dhohmann.bukkit.craft.CraftPlugin;
-import de.dhohmann.bukkit.inventory.CustomShapedRecipe;
-import de.dhohmann.bukkit.util.LanguageSelector;
+import de.dhohmann.bukkit.core.Toggleable;
+import de.dhohmann.bukkit.craft.CraftRecipe;
 
-public class Nametag extends CustomShapedRecipe {
-    
-    private LanguageSelector languages;
-    private CraftPlugin plugin;
-    
-    public Nametag() {
+public class Nametag extends CraftRecipe implements Toggleable {
+
+    private FileConfiguration language;
+    private boolean enabled = false;
+
+    public Nametag(FileConfiguration lang) {
 	super(new ItemStack(Material.NAME_TAG, 2));
-	plugin = (CraftPlugin) Bukkit.getPluginManager().getPlugin("CraftPlugin");
-	languages = plugin.getLanguages();
-    }
-    
-    @Override
-    public String getIdentifier() {
-	return "Nametag";
+	language = lang;
     }
 
     @Override
-    public void activate() {
-	Properties config = languages.getLanguage(Locale.getDefault());
-	
-	ItemMeta meta = this.getResult().getItemMeta();
-	meta.setDisplayName(config.getProperty("titleNametag", "Nametag"));
+    public boolean isEnabled() {
+	return enabled;
+    }
+
+    @Override
+    public void enable() {
+	if (enabled)
+	    return;
+	enabled = true;
+
+	ItemMeta meta = getProtectedResult().getItemMeta();
+	meta.setDisplayName(language.getString("recipes.nametag.name", "Nametag"));
 	List<String> lore = new ArrayList<>();
-	lore.add(config.getProperty("descrNametag", ""));
+	lore.add(language.getString("recipe.nametag.description", ""));
 	meta.setLore(lore);
-	this.getResult().setItemMeta(meta);
-	
-	ShapedRecipe recipe = this;
+	getProtectedResult().setItemMeta(meta);
+
+	CraftRecipe recipe = this;
 	recipe.shape("AAB", "ACA", "AAA");
 	recipe.setIngredient('A', Material.STICK);
 	recipe.setIngredient('B', Material.STRING);
@@ -85,14 +83,15 @@ public class Nametag extends CustomShapedRecipe {
     }
 
     @Override
-    public void deactivate() {
-	Iterator<Recipe> iter = Bukkit.recipeIterator();
+    public void disable() {
+	if (!enabled)
+	    return;
+	enabled = false;
+
+	Iterator<Recipe> iter = Bukkit.getRecipesFor(getProtectedResult()).iterator();
 	while (iter.hasNext()) {
-	    Recipe r = iter.next();
-	    if (r instanceof CustomShapedRecipe) {
-		if(((CustomShapedRecipe)r).getIdentifier().equals(this.getIdentifier())){
-		    iter.remove();
-		}
+	    if (iter.next() instanceof Nametag) {
+		iter.remove();
 	    }
 	}
     }

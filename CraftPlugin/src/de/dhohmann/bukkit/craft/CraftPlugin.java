@@ -1,14 +1,9 @@
 package de.dhohmann.bukkit.craft;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
+import java.util.Locale;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
@@ -16,142 +11,147 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Recipe;
 
+import de.dhohmann.bukkit.core.Toggleable;
 import de.dhohmann.bukkit.craft.recipes.Nametag;
 import de.dhohmann.bukkit.craft.recipes.Netherstar;
 import de.dhohmann.bukkit.craft.recipes.Saddle;
-import de.dhohmann.bukkit.inventory.CustomShapedRecipe;
-import de.dhohmann.bukkit.plugin.CustomJavaPlugin;
-import de.dhohmann.bukkit.util.LanguageSelector;
+import de.dhohmann.bukkit.plugin.DJavaPlugin;
 
-public class CraftPlugin extends CustomJavaPlugin {
+public class CraftPlugin extends DJavaPlugin {
 
-    private LanguageSelector languages;
+    private List<Recipe> recipes;
+    private FileConfiguration language;
 
-    public LanguageSelector getLanguages() {
-	if (languages == null) {
-	    File langFolder = new File(getDataFolder(), "language");
-	    if (!langFolder.exists()) {
-		langFolder.mkdirs();
-	    }
-	    languages = LanguageSelector.createSelector(langFolder);
-	}
-	return languages;
-    }
-
-    /**
-     * Creates the data folder if needed and copies everything from the resources folder to it.
-     */
-    private void createDataFolder() {
-	File dataFolder = getDataFolder();
-	if (!dataFolder.exists()) {
-	    Bukkit.getLogger().log(Level.INFO, "Creating datafolder " + dataFolder.getName());
-	    dataFolder.mkdirs();
-	}
-	try {
-	    JarInputStream jar = new JarInputStream(getClass().getProtectionDomain().getCodeSource().getLocation().openStream());
-	    JarEntry entry = null;
-	    while ((entry = jar.getNextJarEntry()) != null) {
-		if (entry.getName().contains("resources")) {
-		    File dest = new File(dataFolder, entry.getName().substring(entry.getName().indexOf("/") + 1, entry.getName().length()));
-		    if (!dest.exists()) {
-			dest.getParentFile().mkdirs();
-			if (dest.createNewFile()) {
-			    Bukkit.getLogger().log(Level.INFO, "Copying resource " + dest.getName() + " from jar");
-			    OutputStream os = new FileOutputStream(dest);
-			    byte[] buffer = new byte[256];
-			    int length = -1;
-			    while ((length = jar.read(buffer)) != -1) {
-				os.write(buffer, 0, length);
-			    }
-			    os.close();
-			}
-		    }
-		}
-	    }
-	    jar.close();
-	} catch (Exception e) {
-	    Bukkit.getLogger().log(Level.SEVERE, "Something went wrong while creating data folder", e);
-	}
-    }
-
-    private List<CustomShapedRecipe> recipes;
+    public static final String ENABLE = "enable";
+    public static final String DISABLE = "disable";
 
     @Override
-    public boolean hasConfig() {
-	return true;
-    }
-
-    @Override
-    public void activate() {
-	createDataFolder();
-	recipes = new ArrayList<>();
-
+    public void onEnable() {
+	super.onEnable();
 	FileConfiguration config = getConfig();
+	language = getLanguage(Locale.getDefault());
+
 	// Nametag
 	if (config.getBoolean("recipes.nametag")) {
-	    Bukkit.getLogger().log(Level.INFO, "Adding nametag recipe.");
-	    recipes.add(new Nametag());
+	    Bukkit.getLogger().log(Level.INFO, "Adding nametag recipe");
+	    recipes.add(new Nametag(language));
 	}
 
 	// Netherstar
 	if (config.getBoolean("recipes.netherstar")) {
-	    Bukkit.getLogger().log(Level.INFO, "Adding netherstar recipe.");
-	    recipes.add(new Netherstar());
+	    Bukkit.getLogger().log(Level.INFO, "Adding netherstar recipe");
+	    recipes.add(new Netherstar(language));
 	}
 
 	// Saddle
 	if (config.getBoolean("recipes.saddle")) {
-	    Bukkit.getLogger().log(Level.INFO, "Adding saddle recipe.");
-	    recipes.add(new Saddle());
+	    Bukkit.getLogger().log(Level.INFO, "Adding saddle recipe");
+	    recipes.add(new Saddle(language));
 	}
-
-	// Enabling loaded recipes
-	Iterator<CustomShapedRecipe> iter = recipes.iterator();
-	while (iter.hasNext()) {
-	    CustomShapedRecipe recipe = iter.next();
-	    recipe.activate();
-	}
+	
+	// Autocomplete
+	getCommand("recipe").setTabCompleter(new CommandAutocomplete());
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-	if (label.equals("recipes")) {
-	    StringBuilder builder = new StringBuilder("Available Recipes\n");
-	    builder.append("************\n");
-	    for (CustomShapedRecipe r : recipes) {
-		builder.append("\t - ");
-		builder.append(r.getResult().getItemMeta().getDisplayName());
-		builder.append("\n");
-	    }
-	    builder.append("************\n");
-	    sender.sendMessage(builder.toString());
-	} else if (label.equals("recipe")) {
-	    if (args.length >= 1) {
-		String name = args[0];
-		CustomShapedRecipe recipe = null;
-		for (CustomShapedRecipe r : recipes) {
-		    if(r.getIdentifier().equalsIgnoreCase(name)){
-			recipe = r;
+	try {
+	    if (label.equals("recipe")) {
+		if (args[0].equals(ENABLE) || args[0].equals(DISABLE)) {
+		    if (!sender.hasPermission("recipe.statechange")) {
+			sender.sendMessage(command.getPermissionMessage());
+			return true;
+		    }
+		    if (setRecipeState(args[1], args[0])) {
+			sender.sendMessage(language.getString("commands.statechange.success", "State of the recipe changed"));
+		    } else {
+			sender.sendMessage(language.getString("commands.statechange.failure", "Error while changing recipe state"));
+		    }
+		    return true;
+		}
+
+		if (!(sender instanceof Player)) {
+		    sender.sendMessage(language.getString("commands.noserver", "Command can only be executed by players"));
+		    return true;
+		}
+
+		String recipeName = args[0];
+		Iterator<Recipe> iter = Bukkit.recipeIterator();
+		while (iter.hasNext()) {
+		    Recipe r = iter.next();
+		    if (r.getResult().getItemMeta().getDisplayName().equals(recipeName)) {
+			((Player) sender).openInventory(RecipeInventory.buildRecipeInventory(r));
+			break;
 		    }
 		}
-		if(sender instanceof Player){
-		    ((Player)sender).openInventory(recipe.getRecipe());
-		}
-	    } else {
-		return false;
+		sender.sendMessage(language.getString("commands.showrecipe.notfound", "Could not found recipe"));
+		return true;
+	    }
+	    if (label.equals("recipelist")) {
+		List<String> recipes = getAvailableRecipes(null);
+		sender.sendMessage(language.getString("commands.listrecipes.title", "Available recipes"));
+		sender.sendMessage("### BEGIN");
+		sender.sendMessage(recipes.toArray(new String[recipes.size()]));
+		sender.sendMessage("### END");
+	    }
+
+	    return false;
+	} catch (ArrayIndexOutOfBoundsException e) {
+	    sender.sendMessage(language.getString("commands.wrongargnumber", "Wrong argument number"));
+	    return true;
+	}
+    }
+        
+    private List<String> getAvailableRecipes(String prefix) {
+	Iterator<Recipe> iterator = Bukkit.recipeIterator();
+	List<String> recipes = new ArrayList<>();
+	String start = (prefix == null ? "" : prefix);
+
+	while (iterator.hasNext()) {
+	    Recipe r = iterator.next();
+	    String recipeName = r.getResult().getItemMeta().getDisplayName();
+	    if (recipeName.startsWith(start) && !recipes.contains(recipeName)) {
+		recipes.add(r.getResult().getItemMeta().getDisplayName());
 	    }
 	}
-
-	return true;
+	return recipes;
+    }
+    
+    public boolean setRecipeState(String recipeName, String state) {
+	Recipe recipe = null;
+	for (Recipe r : recipes) {
+	    if (r.getResult().getItemMeta().getDisplayName().equals(recipeName)) {
+		recipe = r;
+	    }
+	}
+	if (recipe != null) {
+	    switch (state) {
+	    case ENABLE:
+		if (recipe instanceof Toggleable) {
+		    ((Toggleable) recipe).enable();
+		    return ((Toggleable) recipe).isEnabled();
+		}
+		break;
+	    case DISABLE:
+		if (recipe instanceof Toggleable) {
+		    ((Toggleable) recipe).disable();
+		    return !((Toggleable) recipe).isEnabled();
+		}
+		break;
+	    }
+	}
+	return false;
     }
 
     @Override
-    public void deactivate() {
-	Iterator<CustomShapedRecipe> iter = recipes.iterator();
-	while (iter.hasNext()) {
-	    CustomShapedRecipe recipe = iter.next();
-	    recipe.deactivate();
+    public void onDisable() {
+	super.onDisable();
+	for (Recipe r : recipes) {
+	    if (r instanceof Toggleable) {
+		((Toggleable) r).disable();
+	    }
 	}
     }
 

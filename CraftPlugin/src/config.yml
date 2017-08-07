@@ -1,3 +1,5 @@
+# Enables / disables a recipe
+# Set to false, if you want to disable the recipe
 recipes:
   nametag: true
   netherstar: true

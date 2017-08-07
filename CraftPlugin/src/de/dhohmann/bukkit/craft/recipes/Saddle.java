@@ -3,52 +3,42 @@ package de.dhohmann.bukkit.craft.recipes;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
-import java.util.Properties;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
-import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import de.dhohmann.bukkit.craft.CraftPlugin;
-import de.dhohmann.bukkit.inventory.CustomShapedRecipe;
-import de.dhohmann.bukkit.util.LanguageSelector;
+import de.dhohmann.bukkit.core.Toggleable;
+import de.dhohmann.bukkit.craft.CraftRecipe;
 
-public class Saddle extends CustomShapedRecipe {
+public class Saddle extends CraftRecipe implements Toggleable {
 
-    private CraftPlugin plugin;
-    private LanguageSelector languages;
+    private FileConfiguration language;
+    private boolean enabled = false;
 
     /**
      * Constructs a recipe with a saddle as the result
      */
-    public Saddle() {
+    public Saddle(FileConfiguration lang) {
 	super(new ItemStack(Material.SADDLE, 1));
-	plugin = (CraftPlugin) Bukkit.getPluginManager().getPlugin("CraftPlugin");
-	languages = plugin.getLanguages();
+	language = lang;
     }
 
     @Override
-    public String getIdentifier() {
-	return "Saddle";
-    }
-
-    @Override
-    public void activate() {
+    public void enable() {
 	/* Set item metadata */
-	Properties config = languages.getLanguage(Locale.getDefault());
-	ItemMeta meta = this.getResult().getItemMeta();
-	meta.setDisplayName(config.getProperty("titleSaddle", "Saddle"));
+	ItemMeta meta = getProtectedResult().getItemMeta();
+	meta.setDisplayName(language.getString("recipes.saddle.name", "Saddle"));
 	List<String> lore = new ArrayList<>();
-	lore.add(config.getProperty("descrSaddle", ""));
+	lore.add(language.getString("recipes.saddle.description", ""));
 	meta.setLore(lore);
-	this.getResult().setItemMeta(meta);
-	
+	getProtectedResult().setItemMeta(meta);
+
 	/* Set shape */
-	ShapedRecipe recipe = this;
+	CraftRecipe recipe = this;
 	recipe.shape("AAA", "A A", "B B");
 	recipe.setIngredient('A', Material.LEATHER);
 	recipe.setIngredient('B', Material.IRON_INGOT);
@@ -56,15 +46,22 @@ public class Saddle extends CustomShapedRecipe {
     }
 
     @Override
-    public void deactivate() {
-	Iterator<Recipe> iter = Bukkit.recipeIterator();
+    public void disable() {
+	if (!enabled)
+	    return;
+	enabled = false;
+
+	Iterator<Recipe> iter = Bukkit.getRecipesFor(getProtectedResult()).iterator();
 	while (iter.hasNext()) {
 	    Recipe r = iter.next();
-	    if (r instanceof CustomShapedRecipe) {
-		if (((CustomShapedRecipe) r).getIdentifier().equals(this.getIdentifier())) {
-		    iter.remove();
-		}
+	    if (r instanceof Saddle) {
+		iter.remove();
 	    }
 	}
+    }
+
+    @Override
+    public boolean isEnabled() {
+	return enabled;
     }
 }

@@ -1,0 +1,6 @@
+# Startup related messages
+onstartup:
+  availablecommands: Verfügbare Befehle
+  lines:
+    - Das ist eine Zeile für den Start
+    - Bitte immer Listen verwenden

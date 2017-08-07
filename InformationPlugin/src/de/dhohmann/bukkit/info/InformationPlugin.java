@@ -1,130 +1,184 @@
 package de.dhohmann.bukkit.info;
 
+import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
+import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 
-import de.dhohmann.bukkit.plugin.CustomJavaPlugin;
+import de.dhohmann.bukkit.plugin.DJavaPlugin;
+import de.dhohmann.bukkit.util.JoinMessenger;
+import de.dhohmann.bukkit.util.StringFormatter;
 
-public class InformationPlugin extends CustomJavaPlugin {
+public class InformationPlugin extends DJavaPlugin {
     private int task;
-    private List<Player> players;
 
-    @Override
-    public boolean hasConfig() {
-	return true;
-    }
+    private List<Player> users;
 
-    /**
-     * Called when the plugin is loaded
-     */
-    public void activate() {
-	if (players == null) {
-	    players = new ArrayList<>();
+    private FileConfiguration language;
+    private FileConfiguration userConfig;
+    private FileConfiguration scoreboardConfig;
+    private File userConfigFile;
+    private File scoreboardConfigFile;
+
+    public void onEnable() {
+	super.onEnable();
+
+	users = new ArrayList<>();
+
+	// Configuration files
+	userConfigFile = new File(getDataFolder(), "users.yml");
+	scoreboardConfigFile = new File(getDataFolder(), "scoreboard.yml");
+
+	// Configurations
+	userConfig = new YamlConfiguration();
+	scoreboardConfig = new YamlConfiguration();
+	language = getLanguage(Locale.getDefault());
+
+	if (!userConfigFile.exists()) {
+	    userConfigFile.getParentFile().mkdirs();
+	    copy(getResource("user.yml"), userConfigFile);
 	}
-	task = Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+	if (!scoreboardConfigFile.exists()) {
+	    scoreboardConfigFile.getParentFile().mkdirs();
+	    copy(getResource("scoreboard.yml"), scoreboardConfigFile);
+	}
 
-	    @Override
-	    public void run() {
-		updateScoreboard();
+	loadYamls();
+
+	// Reading users for scoreboard
+	List<String> names = userConfig.getStringList("users");
+	for (String name : names) {
+	    Player player = Bukkit.getPlayer(UUID.fromString(name));
+	    if (player != null) {
+		users.add(player);
 	    }
+	}
 
-	}, 0, 20);
+	// Startup option
+	if (getConfig().getBoolean("onstartup.showcommands", false)) {
+	    Set<String> commandNames = this.getDescription().getCommands().keySet();
+	    JoinMessenger.registerPluginMessage(this, language.getString("onstartup.availablecommands", "Available commands"));
+	    for (String s : commandNames) {
+		JoinMessenger.registerPluginMessage(this, "  - " + s);
+	    }
+	}
+	if (getConfig().getBoolean("onstartup.showlines", false)) {
+	    List<String> lines = language.getStringList("onstartup.lines");
+	    JoinMessenger.registerPluginMessages(this, lines);
+	}
 
-	getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
+	// Scoreboard option
+	if (getConfig().getBoolean("scoreboard.enable", false)) {
+	    task = Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+
+		@Override
+		public void run() {
+		    updateScoreboard();
+		}
+
+	    }, 0, 20 * getConfig().getInt("scoreboard.updatetime", 1));
+	}
     }
 
-    /**
-     * Called when reloading plugin or shutting down the server
-     */
-    public void deactivate() {
+    public void onDisable() {
+	super.onDisable();
+
 	Bukkit.getScheduler().cancelTask(task);
+
+	List<String> useruuids = new ArrayList<>();
+	for (Player p : users) {
+	    useruuids.add(p.getUniqueId().toString());
+	}
+	for (String s : userConfig.getStringList("users")) {
+	    if (!useruuids.contains(s)) {
+		useruuids.add(s);
+	    }
+	}
+	userConfig.set("users", useruuids);
+	saveYamls();
+    }
+
+    private void saveYamls() {
+	try {
+	    userConfig.save(userConfigFile);
+	    scoreboardConfig.save(scoreboardConfigFile);
+	} catch (IOException e) {
+	    Bukkit.getLogger().log(Level.SEVERE, "Error during yaml saving", e);
+	}
+    }
+
+    private void loadYamls() {
+	try {
+	    userConfig.load(userConfigFile);
+	    scoreboardConfig.load(scoreboardConfigFile);
+	} catch (Exception e) {
+	    Bukkit.getLogger().log(Level.SEVERE, "Error during yaml loading", e);
+	}
     }
 
     private void updateScoreboard() {
-	List<String> lines = getConfig().getStringList("information.lines");
+	for (Player p : users) {
+	    if (p.isOnline()) {
+		Scoreboard board = Bukkit.getScoreboardManager().getNewScoreboard();
+		Objective obj = board.registerNewObjective("information", "");
+		obj.setDisplayName(scoreboardConfig.getString("title", "Information"));
+		obj.setDisplaySlot(DisplaySlot.SIDEBAR);
 
-	// Create Scoreboard
-	Scoreboard board = Bukkit.getScoreboardManager().getNewScoreboard();
-	Objective obj = board.registerNewObjective("Information", "");
-	obj.setDisplayName(getConfig().getString("information.title"));
-	obj.setDisplaySlot(DisplaySlot.SIDEBAR);
+		int scoreLine = 0;
+		List<String> lines = scoreboardConfig.getStringList("lines");
+		for (String s : lines) {
 
-	// Set time format
-	SimpleDateFormat format = new SimpleDateFormat("HH:mm");
+		    s = StringFormatter.formatPlaceholder(s, p);
+		    s = StringFormatter.formatPlaceholder(s, p.getWorld());
+		    s = StringFormatter.formatPlaceholder(s, p.getServer());
+		    s = StringFormatter.formatPlaceholder(s);
+		    s = StringFormatter.formatColorCode(s);
 
-	// Set Scores
-	List<Score> scores = new ArrayList<>();
-	for (String s : lines) {
-	    String tmp = s.toString();
-
-	    // Edit lines with placeholder
-	    tmp = tmp.replace("%realtime%", format.format(new Date()));
-	    tmp = tmp.replace("%worldtime%", timeToString(this.getServer().getWorlds().get(0).getTime()));
-	    tmp = tmp.replace("%flight_allowed%", Boolean.toString(this.getServer().getAllowFlight()));
-	    tmp = tmp.replace("%online_players%", Integer.toString(this.getServer().getOnlinePlayers().size()));
-	    tmp = tmp.replace("%difficulty%", this.getServer().getWorlds().get(0).getDifficulty().toString());
-	    tmp = tmp.replace("%server%", (getServer().getIp().equals("") ? "localhost" : getServer().getIp()) + ":" + getServer().getPort());
-	    scores.add(obj.getScore(tmp));
-	}
-
-	int i = 0, size = scores.size() - 1;
-	for (Score s : scores) {
-	    s.setScore(size - i);
-	    i++;
-	}
-	Collection<? extends Player> onlinePlayers = getServer().getOnlinePlayers();
-	// Send scoreboard to all players
-	for (Player p : onlinePlayers) {
-	    if (!p.isOnline()) {
-		continue;
-	    }
-	    try {
-		if (!players.contains(p)) {
-		    p.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
-		} else {
-		    p.setScoreboard(board);
+		    Score score = obj.getScore(s);
+		    score.setScore(lines.size() - (scoreLine++));
 		}
-	    } catch (IllegalStateException e) {
-		e.printStackTrace();
+		p.setScoreboard(board);
 	    }
 	}
     }
 
-    private String timeToString(long time) {
-	int hours = (int) ((Math.floor(time / 1000.0) + 8) % 24); // '8' is the offset
-	int minutes = (int) Math.floor((time % 1000) / 1000.0 * 60);
-	return String.format("%02d:%02d", hours, minutes);
-    }
-
-    /**
-     * Triggered when the player adds the defined command
-     */
+    @EventHandler
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-	if (label.equals("itoggle") || command.getName().equalsIgnoreCase("info-toggle")) {
-	    Player p = (Player) sender;
-	    if (players.contains(p)) {
-		players.remove(p);
-	    } else {
-		players.add(p);
+	if (label.equalsIgnoreCase("infoplugin")) {
+	    if (sender instanceof Player) {
+		try {
+		    if (args[0].equalsIgnoreCase("show")) {
+			if (!users.contains(sender)) {
+			    users.add((Player) sender);
+			}
+		    } else if (args[0].equalsIgnoreCase("hide")) {
+			if (users.contains(sender)) {
+			    users.remove(sender);
+			}
+		    }
+		} catch (ArrayIndexOutOfBoundsException e) {
+		    Bukkit.getLogger().log(Level.WARNING, e.getMessage());
+		}
 	    }
-	    return true;
-	}
-	if (label.equals("ireload") || command.getName().equalsIgnoreCase("info-reload")) {
-	    System.out.println("[INFO] Reloading config for InformationPlugin");
-	    reloadConfig();
-	    return true;
 	}
 	return false;
     }

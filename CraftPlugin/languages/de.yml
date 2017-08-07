@@ -1,0 +1,23 @@
+# Command related messages
+commands:
+  noserver: Der Befehl lässt sich nicht vom Server ausführen
+  wrongargnumber: Die Anzahl der Argumente stimmt nicht überein
+
+  statechange:
+    success: Der Status wurde erfolgreich geändert
+    failure: Der Status konnte nicht geändert werden
+  
+  listrecipes:
+    intro: Verfügbare Rezepte
+
+# Recipe related messages
+recipes:
+  saddle:
+    name: Sattel
+    description: Lässt den Spieler Tiere reiten
+  netherstar:
+    name: Netherstern
+    description: Rares Element
+  nametag:
+    name: Namensschild
+    description: Ermöglicht das Umbenennen von Tieren und Objekten
