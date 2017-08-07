@@ -6,7 +6,7 @@ prefix: CraftPlugin
 description: This plugin adds different custom recipes.
 depend: [CorePlugin]
 commands:
-  recipes:
+  recipelist:
     description: Prints every available custom recipe.
     usage: /recipelist
   recipe:
