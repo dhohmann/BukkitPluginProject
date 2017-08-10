@@ -11,9 +11,14 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 import org.bukkit.inventory.Recipe;
 
 import de.dhohmann.bukkit.core.Toggleable;
+import de.dhohmann.bukkit.craft.recipes.GodAxe;
+import de.dhohmann.bukkit.craft.recipes.GodPickaxe;
+import de.dhohmann.bukkit.craft.recipes.GodShovel;
 import de.dhohmann.bukkit.craft.recipes.Nametag;
 import de.dhohmann.bukkit.craft.recipes.Netherstar;
 import de.dhohmann.bukkit.craft.recipes.Saddle;
@@ -50,7 +55,31 @@ public class CraftPlugin extends DJavaPlugin {
 	    Bukkit.getLogger().log(Level.INFO, "Adding saddle recipe");
 	    recipes.add(new Saddle(language));
 	}
-	
+
+	// GodPickAxe
+	if (config.getBoolean("recipes.godpickaxe")) {
+	    Bukkit.getLogger().log(Level.INFO, "Adding godpickaxe recipe");
+	    recipes.add(new GodPickaxe(language, config.getInt("godlike.godpickaxe", 0)));
+	}
+
+	// GodAxe
+	if (config.getBoolean("recipes.godaxe")) {
+	    Bukkit.getLogger().log(Level.INFO, "Adding godaxe recipe");
+	    recipes.add(new GodAxe(language, config.getInt("godlike.godaxe", 0)));
+	}
+	// GodPickAxe
+	if (config.getBoolean("recipes.godshovel")) {
+	    Bukkit.getLogger().log(Level.INFO, "Adding godshovel recipe");
+	    recipes.add(new GodShovel(language, config.getInt("godlike.godshovel", 0)));
+	}
+
+	// Listeners
+	for (Recipe r : recipes) {
+	    if (r instanceof Listener) {
+		Bukkit.getPluginManager().registerEvents((Listener) r, this);
+	    }
+	}
+
 	// Autocomplete
 	getCommand("recipe").setTabCompleter(new CommandAutocomplete());
     }
@@ -103,7 +132,7 @@ public class CraftPlugin extends DJavaPlugin {
 	    return true;
 	}
     }
-        
+
     private List<String> getAvailableRecipes(String prefix) {
 	Iterator<Recipe> iterator = Bukkit.recipeIterator();
 	List<String> recipes = new ArrayList<>();
@@ -118,7 +147,7 @@ public class CraftPlugin extends DJavaPlugin {
 	}
 	return recipes;
     }
-    
+
     public boolean setRecipeState(String recipeName, String state) {
 	Recipe recipe = null;
 	for (Recipe r : recipes) {
@@ -153,6 +182,7 @@ public class CraftPlugin extends DJavaPlugin {
 		((Toggleable) r).disable();
 	    }
 	}
+	HandlerList.unregisterAll(this);
     }
 
 }

@@ -4,4 +4,17 @@ recipes:
   nametag: true
   netherstar: true
   saddle: true
+  godpickaxe: true
+  godaxe: true
+  godshovel: true
+  godshears: true
   
+# Set the godlike behaviour
+# 1 - normal behaviour (tools will break, tools are enchanted)
+# 2 - demi-god behaviour (tools wont break, breaks every block instantly, drops its items)
+# 3 - god-like behaviour (tools wont break, breaks every block instantly, drops the block)
+godlike:
+  godpickaxe: 2
+  godaxe: 2
+  godshovel: 2
+  godshears: 2

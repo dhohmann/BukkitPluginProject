@@ -21,3 +21,15 @@ recipes:
   nametag:
     name: Namensschild
     description: Ermöglicht das Umbenennen von Tieren und Objekten
+  godshears:
+    name: Gottes Schere
+    description: Bricht nie bei Gebrauch
+  godshovel:
+    name: Gottes Schaufel
+    description: Baut jeden Gegenstand beim ersten Schlag ab
+  godaxe:
+    name: Gottes Axt
+    description: Baut jeden Gegenstand beim ersten Schlag ab
+  godpickaxe:
+    name: Gottes Spitzhacke
+    description: Baut jeden Gegenstand beim ersten Schlag ab

@@ -21,3 +21,15 @@ recipes:
   nametag:
     name: Nametag
     description: Changes names of objects or animals
+  godshears:
+    name: God's Shears
+    description: Unbreakable tool
+  godshovel:
+    name: God's Shovel
+    description: Breaking every block on first hit
+  godaxe:
+    name: God's Axe
+    description: Breaking every block on first hit
+  godpickaxe:
+    name: God's Pickaxe
+    description: Breaking every block on first hit
