@@ -1,3 +1,5 @@
+> Please notice that the current state is not safe for work
+
 # BukkitPluginProject
 This repository contains multiple plugins for Minecraft Bukkit Servers.
 
