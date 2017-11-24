@@ -1,7 +1,6 @@
 package de.dhohmann.bukkit.util;
 
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import org.bukkit.ChatColor;
@@ -21,14 +20,16 @@ public class StringFormatter {
      * @param value
      * @return Formatted message
      */
-    public static String replacePlaceholder(String message, String placeholder, String value) {
+    public static String replacePlaceholder(String message, String placeholder, Object value) {
 	StringBuilder builder = new StringBuilder();
 	String[] parts = message.split(" ");
 	for (int i = 0; i < parts.length; i++) {
 	    String p = parts[i];
 	    if (p.equalsIgnoreCase(placeholder)) {
-		if(value != null) builder.append(value);
-		else builder.append("<undefined>");
+		if (value != null)
+		    builder.append(value.toString());
+		else
+		    builder.append("<undefined>");
 	    } else {
 		builder.append(p);
 	    }
@@ -216,6 +217,7 @@ public class StringFormatter {
 	result = replacePlaceholder(message, "world_players", Integer.toString(world.getPlayers().size()));
 	return result;
     }
+
     /**
      * 
      * Formats the given message with the player properties
@@ -223,7 +225,8 @@ public class StringFormatter {
      * <b>Supported placeholders:</b>
      * <ul>
      * <li><b>%player_name%</b> will be replaced by the name of the player.
-     * <li><b>%player_allow_fly%</b> will be replaced by <code>true</code>, if the player is allowed to fly.
+     * <li><b>%player_allow_fly%</b> will be replaced by <code>true</code>, if the player is allowed
+     * to fly.
      * <li><b>%player_bed%</b> will be replaced by the bed position, if the player got a bed
      * <li><b>%player_exhaustion%</b> will be replaced by the player' exhaustion.
      * <li><b>%player_food_level%</b> will be replaced by the player's food level.
@@ -241,27 +244,34 @@ public class StringFormatter {
      * @param player Player object
      * @return Formatted message
      */
-    public static String formatPlaceholder(String message, Player player){
+    public static String formatPlaceholder(String message, Player player) {
+	if(player == null){
+	    return message;
+	}
 	String result = message;
 	result = replacePlaceholder(message, "%player_name%", player.getName());
 	result = replacePlaceholder(message, "%player_allow_fly%", Boolean.toString(player.getAllowFlight()));
-	result = replacePlaceholder(message, "%player_bed%", player.getBedSpawnLocation().toString());
+	result = replacePlaceholder(message, "%player_bed%", player.getBedSpawnLocation());
 	result = replacePlaceholder(message, "%player_exhaustion%", Float.toString(player.getExhaustion()));
 	result = replacePlaceholder(message, "%player_exp%", Float.toString(player.getExp()));
 	result = replacePlaceholder(message, "%player_food_level%", Integer.toString(player.getFoodLevel()));
-	result = replacePlaceholder(message, "%player_gamemode%", player.getGameMode().toString());
+	result = replacePlaceholder(message, "%player_gamemode%", player.getGameMode());
 	result = replacePlaceholder(message, "%player_health%", Double.toString(player.getHealth()));
-	result = replacePlaceholder(message, "%player_killer%", player.getKiller().getName());
 	result = replacePlaceholder(message, "%player_level%", Integer.toString(player.getLevel()));
-	result = replacePlaceholder(message, "%player_damage_cause%", player.getLastDamageCause().getCause().toString());
+	result = replacePlaceholder(message, "%player_damage_cause%", player.getLastDamageCause());
 	result = replacePlaceholder(message, "%player_location%", player.getLocation().toString());
 	result = replacePlaceholder(message, "%player_first_played%", new SimpleDateFormat("hh:mm").format(new Date(player.getFirstPlayed())));
 	result = replacePlaceholder(message, "%player_saturation%", Float.toString(player.getSaturation()));
 	result = replacePlaceholder(message, "%player_age%", Integer.toString(player.getTicksLived()));
-	
+
+	Player killer = player.getKiller();
+	if (killer != null) {
+	    result = replacePlaceholder(message, "%player_killer%", killer.getName());
+	    result = replacePlaceholder(message, "%player_killer_life%", killer.getHealth());
+	}
 	return result;
     }
-    
+
     /**
      * Formats the given message with some values
      * <p>
@@ -273,11 +283,11 @@ public class StringFormatter {
      * @param message
      * @return
      */
-    public static String formatPlaceholder(String message){
+    public static String formatPlaceholder(String message) {
 	String result = message;
 	result = replacePlaceholder(message, "%real_time%", new SimpleDateFormat("hh:mm").format(new Date()));
 	result = replacePlaceholder(message, "%github%", "https://github.com/dhohmann/BukkitPluginProject");
-	
+
 	return result;
     }
 }

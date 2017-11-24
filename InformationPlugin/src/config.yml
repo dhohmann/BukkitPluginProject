@@ -1,7 +1,6 @@
 # Triggers various functions on startup
-onstartup:
+playerjoin:
   showcommands: true
-  showlines: true
   
 scoreboard:
   enabled: true

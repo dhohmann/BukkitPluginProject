@@ -1,5 +1,6 @@
 package de.dhohmann.bukkit.craft;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
@@ -27,20 +29,26 @@ import de.dhohmann.bukkit.plugin.DJavaPlugin;
 public class CraftPlugin extends DJavaPlugin {
 
     private List<Recipe> recipes;
-    private FileConfiguration language;
+    private String language;
 
     public static final String ENABLE = "enable";
     public static final String DISABLE = "disable";
 
     @Override
     public void onEnable() {
-	super.onEnable();
-	FileConfiguration config = getConfig();
-	language = getLanguage(Locale.getDefault());
+	try {
+	    registerLanguageFolder("languages");
+	} catch (InvalidConfigurationException | IOException e) {
+	    Bukkit.getLogger().log(Level.SEVERE, "Could not load languages");
+	}
+	loadConfig();
+	getLanguage(Locale.getDefault());
+	recipes = new ArrayList<>();
 
 	// Nametag
 	if (config.getBoolean("recipes.nametag")) {
 	    Bukkit.getLogger().log(Level.INFO, "Adding nametag recipe");
+	    System.out.println("\n\n\n" + new Nametag(language) + "\n\n\n");
 	    recipes.add(new Nametag(language));
 	}
 

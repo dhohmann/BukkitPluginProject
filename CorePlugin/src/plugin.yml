@@ -1,5 +1,5 @@
 name: CorePlugin
-version: 0.2.0
+version: 2.0
 author: dhohmann
 main: de.dhohmann.bukkit.core.CorePlugin
 prefix: CorePlugin

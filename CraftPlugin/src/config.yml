@@ -18,3 +18,7 @@ godlike:
   godaxe: 2
   godshovel: 2
   godshears: 2
+  
+# Set the default language that is used inside the plugin
+# Supported languages: DE, EN
+language: DE

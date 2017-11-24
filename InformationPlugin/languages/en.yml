@@ -1,3 +1,6 @@
+# Language name
+language: EN
+
 # Startup related messages
 onstartup:
   availablecommands: Available commands

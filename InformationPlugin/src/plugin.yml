@@ -1,10 +1,11 @@
 name: InformationPlugin
-version: 0.0.1
+version: 0.1.0
 author: dhohmann
 main: de.dhohmann.bukkit.info.InformationPlugin
 prefix: InfoPlugin
 description: This plugin can provide information for all users.
 website: https://github.com/dhohmann/BukkitPluginProject/tree/master/InformationPlugin
+depend: [CorePlugin]
 commands:
   infoplugin:
     description: Enables access to the scoreboard

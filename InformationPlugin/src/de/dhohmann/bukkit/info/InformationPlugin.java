@@ -2,13 +2,8 @@ package de.dhohmann.bukkit.info;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -24,70 +19,61 @@ import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 
+import de.dhohmann.bukkit.plugin.CommandPrinter;
 import de.dhohmann.bukkit.plugin.DJavaPlugin;
-import de.dhohmann.bukkit.util.JoinMessenger;
 import de.dhohmann.bukkit.util.StringFormatter;
 
+/**
+ * Represents the entry point for the InformationPlugin
+ * 
+ * @version 0.1.0
+ * @since 1.0
+ * @author hohmann
+ *
+ */
 public class InformationPlugin extends DJavaPlugin {
     private int task;
+    private boolean runningTask = false;
 
     private List<Player> users;
 
-    private FileConfiguration language;
+    private String language;
+    private final String userConfigName = "users.yml";
+    private final String scoreboardConfigName = "scoreboard.yml";
     private FileConfiguration userConfig;
     private FileConfiguration scoreboardConfig;
     private File userConfigFile;
     private File scoreboardConfigFile;
 
     public void onEnable() {
-	super.onEnable();
-
 	users = new ArrayList<>();
 
-	// Configuration files
-	userConfigFile = new File(getDataFolder(), "users.yml");
-	scoreboardConfigFile = new File(getDataFolder(), "scoreboard.yml");
-
 	// Configurations
+	userConfigFile = new File(getDataFolder(), userConfigName);
+	scoreboardConfigFile = new File(getDataFolder(), scoreboardConfigName);
 	userConfig = new YamlConfiguration();
 	scoreboardConfig = new YamlConfiguration();
-	language = getLanguage(Locale.getDefault());
 
 	if (!userConfigFile.exists()) {
 	    userConfigFile.getParentFile().mkdirs();
-	    copy(getResource("user.yml"), userConfigFile);
+	    copy(getResource(userConfigName), userConfigFile);
 	}
 	if (!scoreboardConfigFile.exists()) {
 	    scoreboardConfigFile.getParentFile().mkdirs();
-	    copy(getResource("scoreboard.yml"), scoreboardConfigFile);
+	    copy(getResource(scoreboardConfigName), scoreboardConfigFile);
 	}
 
 	loadYamls();
 
-	// Reading users for scoreboard
-	List<String> names = userConfig.getStringList("users");
-	for (String name : names) {
-	    Player player = Bukkit.getPlayer(UUID.fromString(name));
-	    if (player != null) {
-		users.add(player);
-	    }
-	}
+	language = getConfig().getString("defaultLanguage", "DE");
 
 	// Startup option
-	if (getConfig().getBoolean("onstartup.showcommands", false)) {
-	    Set<String> commandNames = this.getDescription().getCommands().keySet();
-	    JoinMessenger.registerPluginMessage(this, language.getString("onstartup.availablecommands", "Available commands"));
-	    for (String s : commandNames) {
-		JoinMessenger.registerPluginMessage(this, "  - " + s);
-	    }
-	}
-	if (getConfig().getBoolean("onstartup.showlines", false)) {
-	    List<String> lines = language.getStringList("onstartup.lines");
-	    JoinMessenger.registerPluginMessages(this, lines);
+	if (getConfig().getBoolean("playerjoin.showcommands", false)) {
+	    CommandPrinter.unregisterCommands(this);
 	}
 
 	// Scoreboard option
-	if (getConfig().getBoolean("scoreboard.enable", false)) {
+	if (getConfig().getBoolean("scoreboard.enabled", false)) {
 	    task = Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
 
 		@Override
@@ -96,13 +82,27 @@ public class InformationPlugin extends DJavaPlugin {
 		}
 
 	    }, 0, 20 * getConfig().getInt("scoreboard.updatetime", 1));
+	    runningTask = true;
+	} else {
+	    Bukkit.getLogger().info("Scoreboard not supported");
+	}
+    }
+
+    private void readLastUsers() {
+	List<String> names = userConfig.getStringList("users");
+	for (String name : names) {
+	    Player player = Bukkit.getPlayer(UUID.fromString(name));
+	    if (player != null) {
+		users.add(player);
+	    }
 	}
     }
 
     public void onDisable() {
-	super.onDisable();
 
-	Bukkit.getScheduler().cancelTask(task);
+	if (runningTask){
+	    Bukkit.getScheduler().cancelTask(task);
+	}
 
 	List<String> useruuids = new ArrayList<>();
 	for (Player p : users) {
@@ -119,6 +119,7 @@ public class InformationPlugin extends DJavaPlugin {
 
     private void saveYamls() {
 	try {
+	    saveConfig();
 	    userConfig.save(userConfigFile);
 	    scoreboardConfig.save(scoreboardConfigFile);
 	} catch (IOException e) {
@@ -128,6 +129,7 @@ public class InformationPlugin extends DJavaPlugin {
 
     private void loadYamls() {
 	try {
+	    loadConfig();
 	    userConfig.load(userConfigFile);
 	    scoreboardConfig.load(scoreboardConfigFile);
 	} catch (Exception e) {
@@ -157,6 +159,8 @@ public class InformationPlugin extends DJavaPlugin {
 		    score.setScore(lines.size() - (scoreLine++));
 		}
 		p.setScoreboard(board);
+	    } else {
+		users.remove(p);
 	    }
 	}
     }
@@ -169,10 +173,14 @@ public class InformationPlugin extends DJavaPlugin {
 		    if (args[0].equalsIgnoreCase("show")) {
 			if (!users.contains(sender)) {
 			    users.add((Player) sender);
+			    System.out.println("==== > " + users.toString());
+			    return true;
 			}
 		    } else if (args[0].equalsIgnoreCase("hide")) {
 			if (users.contains(sender)) {
 			    users.remove(sender);
+			    System.out.println("==== > " + users.toString());
+			    return true;
 			}
 		    }
 		} catch (ArrayIndexOutOfBoundsException e) {
@@ -182,4 +190,5 @@ public class InformationPlugin extends DJavaPlugin {
 	}
 	return false;
     }
+
 }

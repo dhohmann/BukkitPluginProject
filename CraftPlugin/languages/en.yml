@@ -1,3 +1,6 @@
+# Language name
+language: EN
+
 # Command related messages
 commands:
   noserver: Command cannot be executed by a server

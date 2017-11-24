@@ -1,3 +1,6 @@
+# Langauge name
+language: DE
+
 # Startup related messages
 onstartup:
   availablecommands: Verfügbare Befehle

@@ -1,3 +1,6 @@
+# Language name
+language: DE
+
 # Command related messages
 commands:
   noserver: Der Befehl lässt sich nicht vom Server ausführen
